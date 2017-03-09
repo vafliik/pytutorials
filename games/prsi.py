@@ -24,26 +24,50 @@ class Deck:
     def add_card(self, card: Card):
         self._cards.append(card)
 
-    def pop_card(self, index=-1):
+    def pop_card_by_index(self, index=-1):
         return self._cards.pop(index)
 
-    def draw_cards(self, hand: 'Hand', number=1):
+    def pop_card(self, card: Card):
+        return self.pop_card_by_index(self.card_index(card))
+
+    def card_index(self, card: Card):
+        for index, _card in enumerate(self._cards):
+            if card.rank == _card.rank and card.suit == _card.suit:
+                break
+        else:
+            raise ValueError('Card not found')
+
+        return index
+
+    def draw_cards(self, other_deck: 'Deck', number=1):
         for _ in range(number):
-            hand.add_card(self.pop_card())
+            other_deck.add_card(self.pop_card_by_index())
+
+    def move_card(self, other_deck: 'Deck', card: Card):
+        other_deck.add_card(self.pop_card(card))
 
 class Hand(Deck):
 
     def __init__(self):
         self._cards = []
 
+class PlayDeck(Deck):
+
+    def __init__(self):
+        self._cards = []
+
 deck = Deck()
 handa = Hand()
+playdec = PlayDeck()
 
+random.shuffle(deck)
+
+deck.move_card(handa, Card('10', 'Cerveny'))
 
 print(len(deck))
-random.shuffle(deck)
-print(list(deck)[-5:])
+print('{:*^30}'.format('Hand'))
+print(list(handa))
 
-carda = Card('Svindl', 'zolik')
-deck.add_card(carda)
-print(deck[-1])
+# carda = Card('Svindl', 'zolik')
+# deck.add_card(carda)
+# print(deck[-1])
