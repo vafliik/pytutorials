@@ -13,7 +13,8 @@ def sec_to_workdays(nr_sec):
         return "%d:%02d:%02d" % (h, m, s)
 
 url = 'http://jira.balfourservices.com/rest/api/2/search'
-r = requests.post(url, json={'jql': 'project = BP AND Sprint = 836'}, auth=('salsita-pavelp', 'xxx'))
+password = 'xxx'
+r = requests.post(url, json={'jql': 'project = BP AND Sprint = 836'}, auth=('salsita-pavelp', password))
 
 data = r.json()
 
@@ -21,7 +22,7 @@ worklog_sum = {}
 
 
 for issue in data['issues']:
-    r = requests.get('{}/worklog'.format(issue['self']), auth=('salsita-pavelp', 'J*Kobliha3461'))
+    r = requests.get('{}/worklog'.format(issue['self']), auth=('salsita-pavelp', password))
     data = r.json()
     jira_nr = issue['key']
     print('*', jira_nr, "-", issue['fields']['summary'])
@@ -44,6 +45,7 @@ for issue in data['issues']:
             # initialize author record
             worklog_sum[author] = {}
             worklog_sum[author]['summary'] = time_spent_sec
+            worklog_sum[author][jira_nr] = time_spent_sec
 
 for key, value in worklog_sum.items():
     print(key, '-', sec_to_workdays(value['summary']))
