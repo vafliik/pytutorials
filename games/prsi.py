@@ -62,7 +62,7 @@ playdec = PlayDeck()
 
 random.shuffle(deck)
 
-deck.move_card(handa, Card('10', 'Cerveny'))
+# deck.move_card(handa, Card('10', 'Cerveny'))
 
 print(len(deck))
 print('{:*^30}'.format('Hand'))

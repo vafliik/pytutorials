@@ -1,24 +1,25 @@
 #curl -D- -u salsita-pavelp:J*Kobliha3461 -X GET -H "Content-Type: application/json" http://jira.balfourservices.com/rest/api/2/search?jql=assignee=salsita-pavelp
+from typing import List
 
 import requests
-from collections import defaultdict
+from collections import namedtuple
+
+Jira = namedtuple('Jira', ['number', 'users_worked'])
 
 def sec_to_workdays(nr_sec):
     m, s = divmod(nr_sec, 60)
     h, m = divmod(m, 60)
-    wd, h = divmod(h, 6)
-    if wd > 0:
-        return "%d wd + %d:%02d:%02d" % (wd, h, m, s)
-    else:
-        return "%d:%02d:%02d" % (h, m, s)
+    return "%d:%02d:%02d" % (h, m, s)
 
 url = 'http://jira.balfourservices.com/rest/api/2/search'
+r = requests.post(url, json={'jql': 'project = BP AND Sprint = 836'}, auth=('salsita-pavelp', '***'))
 password = 'xxx'
 r = requests.post(url, json={'jql': 'project = BP AND Sprint = 836'}, auth=('salsita-pavelp', password))
 
 data = r.json()
 
 worklog_sum = {}
+suspicious_jiras = [] # type: List[Jira]
 
 
 for issue in data['issues']:
@@ -27,10 +28,16 @@ for issue in data['issues']:
     jira_nr = issue['key']
     print('*', jira_nr, "-", issue['fields']['summary'])
 
-    for worklog in data['worklogs']:
+    jira = Jira(jira_nr, [])
+
+    worklogs = data['worklogs']
+
+    for worklog in worklogs:
         author = worklog['author']['displayName']
         time_spent = worklog['timeSpent']
         time_spent_sec = worklog['timeSpentSeconds']
+
+        jira.users_worked.append(author)
 
         print('- {}: {} ({} s)'.format(author, time_spent, time_spent_sec))
 
@@ -47,9 +54,17 @@ for issue in data['issues']:
             worklog_sum[author]['summary'] = time_spent_sec
             worklog_sum[author][jira_nr] = time_spent_sec
 
+    if len(worklogs) < 2:
+        suspicious_jiras.append(jira)
+
 for key, value in worklog_sum.items():
     print(key, '-', sec_to_workdays(value['summary']))
     for k, v in value.items():
         if k != 'summary':
             print('* {}: {}'.format(k, sec_to_workdays(v)))
 
+print ('*** Suspicious ***')
+for j in suspicious_jiras:
+    print(j.number)
+    for worker in j.users_worked:
+        print(worker)
